@@ -13,6 +13,7 @@ local modelInteractions = {}
 local netInteractions = {}
 local globalVehicleInteractions = {}
 local globalPlayerInteraction = {}
+local globalPedInteractions = {}
 local myGroups = {}
 
 -- Used for backwards compatibility, to ensure we return the ID of the interaction
@@ -309,6 +310,40 @@ function api.addGlobalPlayerInteraction(data)
 end
 exports('addGlobalPlayerInteraction', api.addGlobalPlayerInteraction)
 
+function api.addGlobalPedInteraction(data)
+    if not verifyInteraction(data) then return end
+
+    local id = data.id or generateUUID()
+
+    local dataTable = {
+        id = id,
+        name = data.name or ('interaction:%s'):format(id),
+        options = data.options,
+        distance = data.distance or 10.0,
+        interactDst = data.interactDst or 1.0,
+        offset = data.offset,
+        bone = data.bone,
+        ignoreLos = data.ignoreLos,
+        width = utils.getOptionsWidth(data.options),
+        globalPed = true,
+        groups = data.groups,
+        resource = GetInvokingResource()
+    }
+
+    if not globalPedInteractions then
+        globalPedInteractions = {}
+    end
+
+    globalPedInteractions[#globalPedInteractions + 1] = dataTable
+
+    if not data.groups or hasGroup(data.groups) then
+        filteredInteractions[#filteredInteractions + 1] = dataTable
+    end
+
+    return id
+end
+exports('AddGlobalPedInteraction', api.addGlobalPedInteraction)
+
 
 ---@param data table : { name, entity[number|string], bone[string], options, distance, interactDst, groups }
 ---@return number | nil : The id of the interaction
@@ -483,6 +518,20 @@ function api.removeGlobalPlayerInteraction(id)
 end
 exports('RemoveGlobalPlayerInteraction', api.removeGlobalPlayerInteraction)
 
+function api.removeGlobalPedInteraction(id)
+    if id then
+        for i = 1, #globalPedInteractions do
+            local interaction = globalPedInteractions[i]
+            if interaction.id == id then
+                removeFilteredInteraction(interaction)
+                table.remove(globalPedInteractions, i)
+                return
+            end
+        end
+    end
+end
+exports('RemoveGlobalPedInteraction', api.removeGlobalPedInteraction)
+
 ---@param id number : The id of the interaction to remove the option from
 ---@param name? string : The name of the option to remove
 -- Remove an option from an interaction point by id.
@@ -620,6 +669,30 @@ local function addGlobalPlayerData(interaction, options, playercoords)
     end
 end
 
+local function addGlobalPedData(interaction, options, playercoords)
+    local pedAmount, peds = entities.getEntitiesByType('ped')
+
+    if pedAmount > 0 then
+        local amount = #options
+        for j = 1, pedAmount do
+            local ped = peds[j]
+            -- Ignore the player ped
+            if ped ~= cache.ped then
+                interaction.entity = ped
+                local distance = #(utils.getCoordsFromInteract(interaction) - playercoords)
+
+                if distance <= interaction.distance then
+                    local interactOptions, interactionAmount = getInteractionOptions(interaction)
+                    if interactionAmount > 0 then
+                        amount += 1
+                        options[amount] = getReturnData(interactOptions, distance, interaction)
+                    end
+                end
+            end
+        end
+    end
+end
+
 local function addModelInteraction(interaction, options, playercoords)
     local modelEntities = entities.getModelEntities(interaction.model)
     local entityNumbers = modelEntities and #modelEntities
@@ -669,6 +742,12 @@ function api.getNearbyInteractions()
 
             if interaction.model then
                 addModelInteraction(interaction, options, playercoords)
+                amount = #options
+                goto skip
+            end
+
+            if interaction.globalPed then
+                addGlobalPedData(interaction, options, playercoords)
                 amount = #options
                 goto skip
             end
@@ -737,6 +816,13 @@ AddEventHandler('onClientResourceStop', function(resource)
 
         if interaction.resource == resource then
             table.remove(globalPlayerInteraction, i)
+        end
+    end
+
+    for i = 1, #globalPedInteractions do
+        local interaction = globalPedInteractions[i]
+        if interaction.resource == resource then
+            table.remove(globalPedInteractions, i)
         end
     end
 

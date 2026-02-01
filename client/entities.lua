@@ -26,8 +26,35 @@ function entities.getEntitiesByType(type)
     local entityTable = {}
     local serverIds = {}
 
+    if type == 'players' then
+        for _, v in pairs(playersTable) do
+            amount += 1
+            entityTable[amount] = v.entity
+            serverIds[amount] = v.serverId
+        end
+        return amount, entityTable, serverIds
+    end
+
+    if type == 'ped' then
+        for k, v in pairs(localEnties) do
+            if v.type == 'ped' then
+                amount += 1
+                entityTable[amount] = k
+            end
+        end
+
+        for _, v in pairs(netIds) do
+            if v.type == 'ped' then
+                amount += 1
+                entityTable[amount] = v.entity
+            end
+        end
+
+        return amount, entityTable, {}
+    end
+
     if subCache[type] then
-        return #subCache[type], subCache[type]
+        return #subCache[type], subCache[type], {}
     end
 
     for k, v in pairs(localEnties) do
@@ -44,19 +71,9 @@ function entities.getEntitiesByType(type)
         end
     end
 
-    if type == 'players' then
-        for _, v in pairs(playersTable) do
-            amount += 1
-            entityTable[amount] = v.entity
-            serverIds[amount] = v.serverId
-        end
-
-        return amount, entityTable, serverIds
-    end
-
     subCache[type] = entityTable
 
-    return amount, entityTable
+    return amount, entityTable, {}
 end
 
 local function clearTables()
@@ -72,19 +89,20 @@ local GetEntityModel = GetEntityModel
 
 local function buildEntities(eType, playerCoords)
     local entityPool = GetGamePool(eType)
-
     local type = eType:sub(2):lower()
+    local nearbyEntities = {}
 
     for i = 1, #entityPool do
         local entity = entityPool[i]
+        local distance = #(playerCoords - GetEntityCoords(entity))
 
-        if #(playerCoords - GetEntityCoords(entity)) < 100.0 then
+        if distance < 100.0 then
+            nearbyEntities[entity] = true
             local isNetworked = NetworkGetEntityIsNetworked(entity)
             local model = GetEntityModel(entity)
 
             if isNetworked then
                 local netId = NetworkGetNetworkIdFromEntity(entity)
-
                 if not netIds[netId] then
                     netIds[netId] = {
                         entity = entity,
@@ -98,7 +116,6 @@ local function buildEntities(eType, playerCoords)
                 }
             end
 
-
             if not models[model] then
                 models[model] = {}
             end
@@ -107,6 +124,13 @@ local function buildEntities(eType, playerCoords)
                 entity = entity,
                 type = type,
             }
+        end
+    end
+
+    -- Remove entities that have gone out of range.
+    for entity, data in pairs(localEnties) do
+        if data.type == type and not nearbyEntities[entity] then
+            localEnties[entity] = nil
         end
     end
 end

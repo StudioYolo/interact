@@ -10,6 +10,8 @@ Create interaction points in the world with selectable options.
 
 [Snipe](https://github.com/pushkart2)
 
+[Rodriaum](https://github.com/rodriaum)
+
 # Guides & Information
 
 [Video Demo 1](https://youtu.be/dQ7Pdq1pdHQ)
@@ -133,6 +135,27 @@ exports.interact:AddGlobalVehicleInteraction({
     }
 })
 
+-- Add interaction(s) to all peds/NPCs (excludes players)
+exports.interact:AddGlobalPedInteraction({
+    name = 'interactionName', -- optional
+    id = 'myCoolUniqueId', -- needed for removing interactions
+    distance = 8.0, -- optional
+    interactDst = 1.0, -- optional
+    offset = vec3(0.0, 0.0, 0.0), -- optional
+    bone = 'head', -- optional
+    ignoreLos = false, -- optional ignores line of sight
+    groups = {
+        ['police'] = 2, -- Jobname | Job grade
+    },
+    options = {
+        {
+            label = 'Talk to NPC',
+            action = function(entity, coords, args)
+                print('Interacting with ped:', entity)
+            end,
+        },
+    }
+})
 
 -- Add interaction(s) to a list of models
 exports.interact:AddModelInteraction({
@@ -199,4 +222,8 @@ exports.interact:RemoveGlobalVehicleInteraction(interactionID)
 ---@param id number : The id of the interaction to remove
 -- Remove an player interaction by id.
 exports.interact:RemoveGlobalPlayerInteraction(interactionID)
+
+---@param id number : The id of the interaction to remove
+-- Remove a global ped interaction by id.
+exports.interact:RemoveGlobalPedInteraction(interactionID)
 ```

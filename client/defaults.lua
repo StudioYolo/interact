@@ -10,14 +10,14 @@ api.addGlobalVehicleInteraction({
     id = 'interact:defaultTrunk',
     options = {
         name = 'interact:trunk',
-        label = 'Trunk',
+        label = 'Porta-malas',
         action = function(entity)
             if GetVehicleDoorLockStatus(entity) ~= 1 then
-                return lib.notify({ type = 'error', title = 'The trunk is locked.' })
+                return lib.notify({ type = 'error', title = 'O porta-malas está trancado.' })
             end
 
             if GetVehicleDoorAngleRatio(entity, 5) <= 0.0  then
-                return lib.notify({ type = 'error', title = 'the trunk is not open' })
+                return lib.notify({ type = 'error', title = 'o porta-malas não está aberto' })
             end
 
             local plate = GetVehicleNumberPlateText(entity)
