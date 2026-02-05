@@ -48,7 +48,14 @@ function utils.getOptionsWidth(options)
     if options and table.type(options) == 'array' then
         for i = 1, #options do
             local data = options[i]
-            local factor = (string.len(data.label)) / 370
+            local label = data and data.label
+            local lenLabel = 0
+
+            if label ~= nil then
+                lenLabel = string.len(tostring(label))
+            end
+
+            local factor = (lenLabel) / 370
             local newWidth = 0.03 + factor
 
             if newWidth > width then
