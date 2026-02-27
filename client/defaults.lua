@@ -1,4 +1,4 @@
-if GetConvar('interact_disabledefault', 'false') == 'true' then return end
+if GetConvar('interact_disabledefault', 'true') == 'true' then return end
 
 local api = require 'client.interactions'
 

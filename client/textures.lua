@@ -2,6 +2,16 @@ local settings = require 'shared.settings'
 local textures = settings.Textures
 local txd = CreateRuntimeTxd('interactions_txd')
 
-for _, v in pairs(textures) do
-    CreateRuntimeTextureFromImage(txd, tostring(v), 'assets/'..settings.Style..'/'..v..'.png')
+local function loadTextures(style)
+    for _, v in pairs(textures) do
+        CreateRuntimeTextureFromImage(txd, tostring(v), 'assets/'..style..'/'..v..'.png')
+    end
 end
+
+loadTextures(settings.Style)
+
+RegisterNetEvent('interact:setStyle', function(style)
+    if type(style) == 'string' then
+        loadTextures(style)
+    end
+end)

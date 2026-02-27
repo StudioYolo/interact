@@ -6,7 +6,7 @@
 
 return {
     Debug = GetConvar('debug', 'false') == 'true' and true or false, -- Enable / Disable debug mode
-    Style = 'green_square', -- gold_circle (default), blue_circle, green_square, glitch
+    Style = 'green_square', -- gold_circle (default), blue_circle, green_square, red_square, glitch
     Textures = { -- Do not change
         pin = 'pin',
         interact = 'interact',
@@ -18,7 +18,7 @@ return {
     Disable = {
         onDeath = true, -- Disable interactions on death
         onNuiFocus = true, -- Disable interactions while NUI is focused
-        onVehicle = true, -- Disable interactions while in a vehicle
+        onVehicle = false, -- Disable interactions while in a vehicle
         onHandCuff = true, -- Disable interactions while handcuffed
     },
 }
