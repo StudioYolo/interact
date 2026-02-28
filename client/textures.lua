@@ -12,6 +12,8 @@ loadTextures(settings.Style)
 
 RegisterNetEvent('interact:setStyle', function(style)
     if type(style) == 'string' then
+        txd = CreateRuntimeTxd('interactions_txd')
         loadTextures(style)
+        print('Style set to '..style)
     end
 end)
